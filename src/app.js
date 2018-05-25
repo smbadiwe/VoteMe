@@ -1,19 +1,25 @@
 import Koa from "koa";
-import session from "koa-session";
-import passport from "koa-passport";
 import bodyParser from "koa-bodyparser";
+import helmet from "koa-helmet";
+import passport from "koa-passport";
+import session from "koa-session";
+import "./auth";
 import { listFilesInFolderRecursively } from "./utils";
 //import router from "./routes/index";
 const app = new Koa();
+
+// check out https://www.npmjs.com/package/koa-helmet#usage
+app.use(helmet());
 
 // sessions
 app.keys = ["secret", "key"];
 app.use(session(app));
 
+// To make the POST request in KOA, we need to 
+// install the koa-bodyparser package otherwise 
+// ctx.request.body would come undefined.
 app.use(bodyParser());
 
-// authentication
-require('./auth');
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -29,8 +35,7 @@ const files = listFilesInFolderRecursively(
   require("path").join(__dirname, "routes")
 );
 files.forEach(item => {
-  //console.log(item);
-  if (!item.endsWith("candidates.js")) {
+  if (item) {
     item = item.replace("src", ".");
     const router = require(item);
     app.use(router.routes());

@@ -4,16 +4,19 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
+    "bcrypt": "^2.0.1",
     "body-parser": "^1.18.3",
     "dotenv": "^5.0.1",
     "knex": "^0.14.6",
     "koa": "^2.5.1",
     "koa-bodyparser": "^4.2.1",
     "koa-combine-routers": "^3.0.1",
+    "koa-helmet": "^4.0.0",
     "koa-passport": "^4.1.0",
     "koa-router": "^7.4.0",
     "koa-session": "^5.8.1",
     "mysql": "^2.15.0",
+    "passport-local": "^1.0.0",
     "upath": "^1.1.0"
   },
   "devDependencies": {

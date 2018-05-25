@@ -1,5 +1,6 @@
 // changing this to ES6 style is problematic.
 require('babel-register');
+require('dotenv').load();
 const path = require('path');
 const BASE_PATH = __dirname; // path.join(__dirname, 'db');
 

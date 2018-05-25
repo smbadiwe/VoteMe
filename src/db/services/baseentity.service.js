@@ -1,7 +1,6 @@
 import knex from "../connection";
 
 export class BaseEntityService {
-  
   constructor(tableName) {
     this._tableName = tableName;
     this._connector = knex;
@@ -15,48 +14,19 @@ export class BaseEntityService {
     return this._tableName;
   }
 
-  getAll() {
-    return this.connector
-      .table(this.tableName)
-      .select("*")
-      .then(rows => {
-        return {
-          error: false,
-          data: rows
-        };
-      })
-      .catch(err => {
-        console.log(err);
-        return {
-          error: true,
-          data: {
-            message: "Database error occurred"
-          }
-        };
-      });
+  async getAll() {
+    return await this.connector.table(this.tableName).select();
   }
 
-  getById(entityId) {
-    return this.connector
+  async getById(entityId) {
+    return await this.connector
       .table(this.tableName)
-      .select("*")
       .where({ id: entityId })
-      .first()
-      .then(item => {
-        console.log(item);
-        return {
-          error: false,
-          data: item
-        };
-      })
-      .catch(err => {
-        console.log(err);
-        return {
-          error: true,
-          data: {
-            message: "Database error occurred"
-          }
-        };
-      });
+      .first();
+  }
+
+  async save(record) {
+    if (record)
+      return await this.connector.table(this.tableName).insert(record);
   }
 }

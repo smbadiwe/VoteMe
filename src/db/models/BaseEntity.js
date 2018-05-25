@@ -4,7 +4,7 @@ export default class BaseEntity {
     //   throw new TypeError("Cannot construct BaseEntity instances directly");
     // }
     this.id = 0;
-    this.created_at = new Date();
+    this.created_at = new Date().now();
     this.updated_at = null;
     this.disabled = false;
     this.deleted = false;

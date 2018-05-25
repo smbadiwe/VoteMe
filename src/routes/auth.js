@@ -56,4 +56,6 @@ router.get(
     })
 );
 
+// Don't change this to ES6 style. We use 'require' to auto-register routes
+// See src/app.js
 module.exports = router;
