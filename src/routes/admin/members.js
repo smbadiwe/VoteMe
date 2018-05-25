@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { MemberService } from "../../db/services/members.service";
-
+import * as validate from "./members.validate";
 const router = new Router({ prefix: "/admin" });
 
 router.get("/members", async ctx => {
@@ -28,15 +28,27 @@ router.get("/members/:id", async ctx => {
 });
 
 router.post("/members/add", async ctx => {
-  const newMember = ctx.request.body;
-  if (newMember) {
-    try {
-      await new MemberService().save(newMember);
-    } catch (err) {
-      console.log(err);
-      ctx.body = "Error saving data.";
-      ctx.status = 503;
-    }
+  const payload = ctx.request.body;
+  try {
+    validate.validateMemberOnAdd(payload);
+  } catch (e) {
+    ctx.body = e.message;
+    ctx.status = e.status;
+    return;
+  }
+  const newMember = {
+    email: payload.email,
+    phone: payload.phone,
+    lastname: payload.lastname,
+    firstname: payload.firstname,
+    regnumber: payload.regnumber
+  };
+  try {
+    await new MemberService().save(newMember);
+  } catch (err) {
+    console.log(err);
+    ctx.body = "Error saving data.";
+    ctx.status = 503;
   }
 });
 

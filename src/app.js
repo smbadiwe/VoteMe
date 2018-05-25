@@ -5,7 +5,7 @@ import passport from "koa-passport";
 import session from "koa-session";
 import "./auth";
 import { listFilesInFolderRecursively } from "./utils";
-//import router from "./routes/index";
+
 const app = new Koa();
 
 // check out https://www.npmjs.com/package/koa-helmet#usage
@@ -35,7 +35,7 @@ const files = listFilesInFolderRecursively(
   require("path").join(__dirname, "routes")
 );
 files.forEach(item => {
-  if (item) {
+  if (item && !item.endsWith('.validate.js')) {
     item = item.replace("src", ".");
     const router = require(item);
     app.use(router.routes());

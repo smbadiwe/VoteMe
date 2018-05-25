@@ -1,6 +1,6 @@
 import { BaseEntityService } from "./baseentity.service";
 
-export class ContestantService extends BaseEntityService {
+export default class ContestantService extends BaseEntityService {
   constructor() {
     super("contestants");
   }

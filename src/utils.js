@@ -11,7 +11,6 @@ export const listFilesInFolderRecursively = function(dir, filelist) {
       filelist = listFilesInFolderRecursively(filePath, filelist);
     } else {
       const item = upath.normalizeSafe(relative("", filePath));
-      //console.log(item);
       filelist.push(item);
     }
   });

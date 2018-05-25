@@ -2,6 +2,8 @@ import passport from "koa-passport";
 import Router from "koa-router";
 import { MemberService } from "../db/services/members.service";
 
+const router = new Router({ prefix: "/auth" });
+
 passport.serializeUser((user, done) => { done(null, user.id); });
 
 passport.deserializeUser((id, done) => {
@@ -9,8 +11,6 @@ passport.deserializeUser((id, done) => {
   .then((user) => { done(null, user); })
   .catch((err) => { done(err,null); });
 });
-
-const router = new Router({ prefix: "/auth"});
 
 // POST /login
 router.post("/login", async ctx => {
@@ -21,7 +21,6 @@ router.post("/login", async ctx => {
 });
 
 router.get("/logout", async ctx => {
-    console.log("/logout called");
     ctx.logout();
     ctx.redirect("/");
 });

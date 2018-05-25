@@ -21,6 +21,5 @@ switch (environment) {
 }
 
 const knex = config(knexConfiguration);
-knex.migrate.latest(knexConfiguration.migrations);
 
 export default knex;

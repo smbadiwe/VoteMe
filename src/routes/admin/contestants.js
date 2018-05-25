@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { ContestantService } from "../../db/services/contestants.service";
+import * as validate from "./contestants.validate";
 
 const router = new Router({ prefix: "/admin" });
 
@@ -28,15 +29,25 @@ router.get("/contestants/:id", async ctx => {
 });
 
 router.post("/contestants/add", async ctx => {
-  const newContestant = ctx.request.body;
-  if (newContestant) {
-    try {
-      await new ContestantService().save(newContestant);
-    } catch (err) {
-      console.log(err);
-      ctx.body = "Error saving data.";
-      ctx.status = 503;
-    }
+  const payload = ctx.request.body;
+  try {
+    validate.validateContestantOnAdd(payload);
+  } catch (e) {
+    ctx.body = e.message;
+    ctx.status = e.status;
+    return;
+  }
+  const newContestant = {
+    member_id: payload.member_id,
+    election_id: payload.election_id
+  };
+
+  try {
+    await new ContestantService().save(newContestant);
+  } catch (err) {
+    console.log(err);
+    ctx.body = "Error saving data.";
+    ctx.status = 503;
   }
 });
 

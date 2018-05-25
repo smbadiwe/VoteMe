@@ -1,6 +1,6 @@
 import { BaseEntityService } from "./baseentity.service";
 
-export class MemberService extends BaseEntityService {
+export default class MemberService extends BaseEntityService {
   constructor() {
     super("members");
   }
@@ -8,7 +8,6 @@ export class MemberService extends BaseEntityService {
   async getByUsername(email) {
     return await this.connector
       .table(this.tableName)
-      .select("*")
       .where({ email: email })
       .first();
   }

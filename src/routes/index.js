@@ -1,15 +1,4 @@
-// import combineRouters from "koa-combine-routers";
-// import membersRouter from "./admin/members";
-// import authRouter from "./auth";
-
-// const router = combineRouters([
-//     membersRouter,
-//     authRouter
-// ]);
-
-// export default router;
 import Router from "koa-router";
-
 const router = new Router();
 
 router.get("/", async ctx => {

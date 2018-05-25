@@ -1,5 +1,8 @@
 import BaseEntity from './BaseEntity.js';
 
+/**
+ * Represents a member's login credentials
+ */
 export class MemberPassword extends BaseEntity {
   constructor() {
     super();

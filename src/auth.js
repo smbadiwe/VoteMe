@@ -2,7 +2,7 @@ import passport from "koa-passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { MemberService } from "./db/services/members.service";
 
-const bcrypt = require("bcrypt");
+import { compare } from "bcrypt";
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -28,7 +28,7 @@ passport.use(
         if (!user) {
           return done(null, false);
         }
-        bcrypt.compare(password, user.passwordHash, (err, isValid) => {
+        compare(password, user.passwordHash, (err, isValid) => {
           if (err) {
             return done(err);
           }
