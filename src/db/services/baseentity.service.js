@@ -27,6 +27,6 @@ export class BaseEntityService {
 
   async save(record) {
     if (record)
-      return await this.connector.table(this.tableName).insert(record);
+      return await this.connector.table(this.tableName).insert(record).returning('*');
   }
 }

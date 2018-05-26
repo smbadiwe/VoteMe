@@ -1,11 +1,11 @@
+import { compare } from "bcrypt";
 import passport from "koa-passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { MemberService } from "./db/services/members.service";
 
-import { compare } from "bcrypt";
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user.id); // could be a json of the relevant  properties.
 });
 
 passport.deserializeUser((id, done) => {
