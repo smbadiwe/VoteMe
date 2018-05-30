@@ -24,7 +24,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(async (ctx, next) => {
-  console.log("calling " + ctx.url);
+  console.log(`calling ${ctx.method}: ${ctx.url}. Payload:`);
+  console.log(ctx.request.body);
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
