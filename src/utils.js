@@ -2,7 +2,7 @@ import { readdirSync, statSync } from "fs";
 import { join, relative } from "path";
 import upath from "upath";
 
-export const listFilesInFolderRecursively = function(dir, filelist) {
+export const listFilesInFolderRecursively = (dir, filelist) => {
   const files = readdirSync(dir);
   filelist = filelist || [];
   files.forEach(function(file) {
@@ -15,4 +15,23 @@ export const listFilesInFolderRecursively = function(dir, filelist) {
     }
   });
   return filelist;
+};
+
+export const apiError = msg => {
+  return {
+    status: false,
+    message: msg
+  };
+};
+
+export const apiSuccess = responseData => {
+  if (responseData) {
+    return {
+      status: true,
+      data: responseData.data
+    };
+  }
+  return {
+    status: true
+  };
 };

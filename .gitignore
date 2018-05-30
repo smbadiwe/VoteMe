@@ -1,6 +1,9 @@
 # Dependency directory
 node_modules
 
+# build folder
+dist
+
 # config file
 .env
 

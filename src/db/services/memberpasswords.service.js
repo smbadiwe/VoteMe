@@ -8,8 +8,8 @@ export default class MemberPasswordService extends BaseEntityService {
   async getCurrentPassword(memberId) {
     return await this.connector
       .table(this.tableName)
-      .where({ member_id: memberId })
-      .orderBy('passwordsetdate', 'desc')
+      .where({ memberId: memberId })
+      .orderBy("passwordsetdate", "desc")
       .first();
   }
 }

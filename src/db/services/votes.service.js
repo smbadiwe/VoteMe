@@ -8,7 +8,7 @@ export default class VoteService extends BaseEntityService {
   async hasMemberVoted(member_id, election_id) {
     const memberVote = await this.connector
       .table(this.tableName)
-      .where({ member_id: member_id, election_id: election_id })
+      .where({ memberId: member_id, electionId: election_id })
       .first();
 
     if (memberVote) return true;

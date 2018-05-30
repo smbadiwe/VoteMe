@@ -1,4 +1,4 @@
-import BaseEntity from './BaseEntity.js';
+import BaseEntity from "./BaseEntity.js";
 
 /**
  * Represents a member's login credentials
@@ -8,6 +8,6 @@ export class MemberPassword extends BaseEntity {
     super();
     this.passwordHash = "";
     this.passwordsetdate = new Date().now();
-    this.member_id = 0;
+    this.memberId = 0;
   }
 }

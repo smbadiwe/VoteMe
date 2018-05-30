@@ -6,8 +6,6 @@ export default class ContestantService extends BaseEntityService {
   }
 
   async getByElectionId(electionId) {
-    return await this.connector
-      .table(this.tableName)
-      .where({ election_id: electionId });
+    return await this.connector.table(this.tableName).where({ electionId: electionId });
   }
 }

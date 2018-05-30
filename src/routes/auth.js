@@ -1,6 +1,7 @@
 import passport from "koa-passport";
 import Router from "koa-router";
 import { MemberService } from "../db/services";
+import { apiSuccess, apiError } from "../utils";
 
 const router = new Router({ prefix: "/auth" });
 
@@ -24,16 +25,16 @@ router.post("/login", ctx => {
   return passport.authenticate("local", (err, user, info, status) => {
     if (user) {
       ctx.login(user);
-      ctx.body = { status: true, data: user };
+      ctx.body = apiSuccess(user);
     } else {
       ctx.status = 400;
-      ctx.body = { status: false, message: 'No user match found.' };
+      ctx.body = apiError("No user match found.");
     }
   })(ctx);
 });
 router.get("/logout", async ctx => {
   ctx.logout();
-  ctx.body = { status: true };
+  ctx.body = apiSuccess();
 });
 
 router.get("/facebook", async ctx => passport.authenticate("facebook"));

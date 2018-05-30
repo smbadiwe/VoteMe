@@ -1,6 +1,5 @@
 import MemberService from "./members.service";
 import MemberPasswordService from "./memberpasswords.service";
-export {
-    MemberService,
-    MemberPasswordService
-}
+import EmailAccountService from "./emailaccounts.service";
+
+export { MemberService, MemberPasswordService, EmailAccountService };

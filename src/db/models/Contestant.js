@@ -1,4 +1,4 @@
-import BaseEntity from './BaseEntity.js';
+import BaseEntity from "./BaseEntity.js";
 
 /**
  * Contestant is a Member running for office in a given Election.
@@ -8,7 +8,7 @@ export class Contestant extends BaseEntity {
     super();
     this.votes = 0;
     this.won = false;
-    this.member_id = 0;
-    this.election_id = 0;
+    this.memberId = 0;
+    this.electionId = 0;
   }
 }
