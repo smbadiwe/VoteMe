@@ -1,14 +1,14 @@
 import { BaseEntityService } from "./baseentity.service";
 
-export default class MemberPasswordService extends BaseEntityService {
+export default class UserPasswordService extends BaseEntityService {
   constructor() {
-    super("memberpasswords");
+    super("userpasswords");
   }
 
   async getCurrentPassword(memberId) {
     return await this.connector
       .table(this.tableName)
-      .where({ memberId: memberId })
+      .where({ userId: memberId })
       .orderBy("passwordsetdate", "desc")
       .first();
   }

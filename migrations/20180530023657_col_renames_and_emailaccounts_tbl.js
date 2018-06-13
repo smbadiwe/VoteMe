@@ -33,4 +33,19 @@ export async function up(knex) {
 
 export async function down(knex) {
   await knex.schema.dropTable("emailaccounts");
+
+  await knex.schema.table("contestants", t => {
+    t.renameColumn("electionId", "election_id");
+    t.renameColumn("memberId", "member_id");
+  });
+
+  await knex.schema.table("votes", t => {
+    t.renameColumn("electionId", "election_id");
+    t.renameColumn("memberId", "member_id");
+    t.renameColumn("contestantId", "contestant_id");
+  });
+
+  await knex.schema.table("memberpasswords", t => {
+    t.renameColumn("memberId", "member_id");
+  });
 }

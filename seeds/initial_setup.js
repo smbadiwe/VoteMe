@@ -1,12 +1,14 @@
 import { hashSync, genSaltSync } from "bcrypt";
-
+import { getRoutesRequiringAuthorization } from "../src/routes";
 export async function seed(knex, Promise) {
   // Deletes ALL existing entries
-  await knex("memberpasswords").del();
+  await knex("userpasswords").del();
   await knex("contestants").del();
   await knex("elections").del();
-  await knex("members").del();
+  await knex("users").del();
   await knex("emailaccounts").del();
+  await knex("permissions").del();
+  await knex("userroles").del();
 
   await knex("emailaccounts").insert([
     {
@@ -22,7 +24,7 @@ export async function seed(knex, Promise) {
     }
   ]);
   // Inserts seed entries
-  await knex("members").insert([
+  await knex("users").insert([
     {
       id: 1,
       lastname: "Trump",
@@ -48,17 +50,27 @@ export async function seed(knex, Promise) {
       phone: ""
     }
   ]);
-  await knex("memberpasswords").insert([
-    { passwordHash: hashSync("donald", genSaltSync()), memberId: 1 },
-    { passwordHash: hashSync("ted", genSaltSync()), memberId: 2 },
-    { passwordHash: hashSync("marco", genSaltSync()), memberId: 3 }
+  await knex("userpasswords").insert([
+    { passwordHash: hashSync("donald", genSaltSync()), userId: 1 },
+    { passwordHash: hashSync("ted", genSaltSync()), userId: 2 },
+    { passwordHash: hashSync("marco", genSaltSync()), userId: 3 }
   ]);
   await knex("elections").insert([{ id: 1, name: "2016 GOP Primaries", year: 2016 }]);
   await knex("contestants").insert([
-    { memberId: 1, electionId: 1, won: true, votes: 2120 },
-    { memberId: 2, electionId: 1, won: false, votes: 2020 },
-    { memberId: 3, electionId: 1, won: false, votes: 1120 }
+    { userId: 1, electionId: 1, won: true, votes: 2120 },
+    { userId: 2, electionId: 1, won: false, votes: 2020 },
+    { userId: 3, electionId: 1, won: false, votes: 1120 }
   ]);
+
+  const pr = getRoutesRequiringAuthorization();
+  const prKnex = [];
+  pr.forEach((p, i) => {
+    if (p.indexOf("/api/") > -1) {
+      prKnex.push({ name: p });
+    }
+  });
+  prKnex.map((p, i) => (p.id = i + 1));
+  await knex("permissions").insert(prKnex);
 }
 // export function seed(knex, Promise) {
 //   // Deletes ALL existing entries

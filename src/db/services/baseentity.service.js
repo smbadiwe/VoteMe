@@ -19,14 +19,23 @@ export class BaseEntityService {
   }
 
   async getById(entityId) {
+    if (!entityId) return null;
     return await this.connector
       .table(this.tableName)
       .where({ id: entityId })
       .first();
   }
 
+  async getByIds(entityIds) {
+    if (!entityIds || entityIds.length == 0) return null;
+    return await this.connector.table(this.tableName).whereIn("id", entityIds);
+  }
+
   async save(record) {
     if (record)
-      return await this.connector.table(this.tableName).insert(record).returning('*');
+      return await this.connector
+        .table(this.tableName)
+        .insert(record)
+        .returning("*");
   }
 }

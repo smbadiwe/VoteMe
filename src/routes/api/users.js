@@ -1,10 +1,10 @@
 import Router from "koa-router";
-import { MemberService } from "../../db/services/members.service";
-import * as validate from "./members.validate";
-const router = new Router({ prefix: "/admin" });
+import { UserService } from "../../db/services";
+import * as validate from "./users.validate";
+const router = new Router({ prefix: "/api" });
 
-router.get("/members", async ctx => {
-  const allMembers = await new MemberService().getAll();
+router.get("/users", async ctx => {
+  const allMembers = await new UserService().getAll();
   if (!allMembers) {
     ctx.status = 503;
   } else {
@@ -12,22 +12,21 @@ router.get("/members", async ctx => {
   }
 });
 
-router.get("/members/:id", async ctx => {
+router.get("/users/:id", async ctx => {
   try {
-    const member = await new MemberService().getById(ctx.params.id);
+    const member = await new UserService().getById(ctx.params.id);
     if (!member) {
-      ctx.status = 503;
+      ctx.throw(503);
     } else {
       ctx.body = member;
     }
   } catch (err) {
     console.log(err);
-    ctx.body = "No member with the given id found.";
-    ctx.status = 503;
+    ctx.throw(503, "No member with the given id found.");
   }
 });
 
-router.post("/members/add", async ctx => {
+router.post("/users/add", async ctx => {
   const payload = ctx.request.body;
   try {
     validate.validateMemberOnAdd(payload);
@@ -44,7 +43,7 @@ router.post("/members/add", async ctx => {
     regnumber: payload.regnumber
   };
   try {
-    await new MemberService().save(newMember);
+    await new UserService().save(newMember);
   } catch (err) {
     console.log(err);
     ctx.body = "Error saving data.";

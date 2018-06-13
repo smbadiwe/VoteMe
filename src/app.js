@@ -1,46 +1,19 @@
 import Koa from "koa";
-import bodyParser from "koa-bodyparser";
-import helmet from "koa-helmet";
-import passport from "koa-passport";
-import session from "koa-session";
-import "./auth";
-import { listFilesInFolderRecursively } from "./utils";
+import KeyGrip from "keygrip";
+
+import middleware from "./middleware";
+import auth from "./auth";
+import routes from "./routes";
 
 const app = new Koa();
 
-// check out https://www.npmjs.com/package/koa-helmet#usage
-app.use(helmet());
+const keys = [process.env.APP_SECRET];
+app.keys = new KeyGrip(keys, "sha256");
 
-// sessions
-app.keys = ["secret", "key"];
-app.use(session(app));
-
-// To make the POST request in KOA, we need to 
-// install the koa-bodyparser package otherwise 
-// ctx.request.body would come undefined.
-app.use(bodyParser());
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.use(async (ctx, next) => {
-  console.log(`calling ${ctx.method}: ${ctx.url}. Payload:`);
-  console.log(ctx.request.body);
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  ctx.set("X-Response-Time", `${ms}ms`);
-});
-
-const files = listFilesInFolderRecursively(
-  require("path").join(__dirname, "routes")
-);
-files.forEach(item => {
-  if (item && !item.endsWith('.validate.js')) {
-    item = item.replace("src", ".");
-    const router = require(item);
-    app.use(router.routes());
-  }
-});
+app.use(middleware());
+//app.use(auth());
+app.use(routes());
+// Finally
+app.use(ctx => (ctx.status = 404));
 
 export default app;

@@ -2,7 +2,7 @@ import Router from "koa-router";
 import { ContestantService } from "../../db/services/contestants.service";
 import * as validate from "./contestants.validate";
 
-const router = new Router({ prefix: "/admin" });
+const router = new Router({ prefix: "/api" });
 
 router.get("/contestants", async ctx => {
   const allContestants = await new ContestantService().getAll();
@@ -51,6 +51,7 @@ router.post("/contestants/add", async ctx => {
   }
 });
 
+// console.log(router.stack.map(i => i));
 // Don't change this to ES6 style. We use 'require' to auto-register routes
 // See src/app.js
 module.exports = router;

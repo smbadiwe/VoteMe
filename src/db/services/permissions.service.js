@@ -1,14 +1,14 @@
 import { BaseEntityService } from "./baseentity.service";
 
-export default class MemberService extends BaseEntityService {
+export default class PermissionService extends BaseEntityService {
   constructor() {
-    super("members");
+    super("permissions");
   }
 
-  async getByUsername(email) {
+  async getByName(name) {
     return await this.connector
       .table(this.tableName)
-      .where({ email: email })
+      .where({ name: name })
       .first();
   }
 }
