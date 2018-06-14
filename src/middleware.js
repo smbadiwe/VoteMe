@@ -56,6 +56,16 @@ async function trackTime(ctx, next) {
   const ms = Date.now() - start;
   ctx.set("X-Response-Time", `${ms}ms`);
 }
+
+async function handleError(ctx, next) {
+  try {
+    await next();
+  } catch (err) {
+    ctx.status = err.status || 500;
+    ctx.body = err.message;
+    ctx.app.emit("error", err, ctx);
+  }
+}
 /*
  jwt token model:
  { 
@@ -96,6 +106,7 @@ export default function middleware() {
     bodyParser(),
     convert(session()),
     logger(),
+    handleError,
     trackTime,
     convert(cors(corsConfig())),
     authorizeRequest

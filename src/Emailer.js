@@ -1,8 +1,10 @@
 import nodemailer from "nodemailer";
-import { apiSuccess, apiError } from "./utils";
+import { apiSuccess } from "./utils";
 import mustache from "mustache";
 import fs from "fs";
 import path from "path";
+import { EmailAccountService } from "./db/services";
+import { RequestError } from "./ValidationErrors";
 
 export default class Emailer {
   /**
@@ -18,47 +20,54 @@ export default class Emailer {
     })
      */
   constructor(emailAccountDetails) {
-    if (!emailAccountDetails) throw new Error("emailAccountDetails cannot be null");
     this._emailAccountDetails = emailAccountDetails;
     this._transporter = null;
     this.emailTemplateDirectory = "./email-templates";
   }
 
-  getTransporter() {
+  setEmailAccountDetails(emailAccountDetails) {
+    this._emailAccountDetails = emailAccountDetails;
+  }
+
+  async getTransporter() {
     if (!this._transporter) {
-      this._transporter = nodemailer.createTransport(this._emailAccountDetails);
+      if (!this._emailAccountDetails) {
+        this._emailAccountDetails = await new EmailAccountService().getDefaultAccount();
+        if (!this._emailAccountDetails)
+          throw new Error("You need to at least setup a default account");
+      }
+      const transportOptions = {
+        service: this._emailAccountDetails.name,
+        host: this._emailAccountDetails.smtpHost,
+        port: this._emailAccountDetails.smtpPort,
+        secure: this._emailAccountDetails.secureSsl,
+        auth: {
+          user: this._emailAccountDetails.smtpUsername,
+          pass: this._emailAccountDetails.smtpPassword
+        }
+      };
+
+      this._transporter = nodemailer.createTransport(transportOptions);
     }
     return this._transporter;
   }
 
   /**
    *
-   * @param {*} emailOptions
+   * @param {*} emailOptions { subject: "", to: "",}
    * @param {*} htmlTemplatePath path of the file relative to ./email-templates
    * @param {*} viewData
    */
-  sendEmail(emailOptions, htmlTemplatePath, viewData) {
-    const postProcess = async (err, page) => {
-      if (err) {
-        console.error(err);
-        return apiError(err.message);
-      }
-      try {
-        const htmlBody = mustache.to_html(page, viewData);
-        return await sendEmail(emailOptions, htmlBody);
-      } catch (e) {
-        console.error(e);
-        return apiError(e.message);
-      }
-    };
+  async sendEmail(emailOptions, htmlTemplatePath, viewData) {
+    if (!emailOptions) throw new RequestError("emailOptions required");
+    if (!emailOptions.to) throw new RequestError("emailOptions.to required");
+    htmlTemplatePath = path.resolve(__dirname, this.emailTemplateDirectory, htmlTemplatePath);
+    const template = fs.readFileSync(htmlTemplatePath, "utf8");
 
-    try {
-      htmlTemplatePath = path.resolve(this.emailTemplateDirectory, htmlTemplatePath);
-      fs.readFile(htmlTemplatePath, "utf8", postProcess);
-    } catch (e) {
-      console.error(e);
-      return apiError(e.message);
-    }
+    const htmlBody = mustache.to_html(template, viewData);
+    console.log(htmlBody);
+    const result = await this.sendEmailToClient(emailOptions, htmlBody);
+    return apiSuccess(result);
   }
 
   /**
@@ -67,23 +76,19 @@ export default class Emailer {
    *
    * @see Email class definition
    */
-  async sendEmail(emailOptions, htmlBody) {
+  async sendEmailToClient(emailOptions, htmlBody) {
     // create reusable transporter object using the default SMTP transport
-    const transporter = this.getTransporter();
-
+    // See http://nodemailer.com/message/ and http://nodemailer.com/message/addresses/
+    // for mail options.
+    const transporter = await this.getTransporter();
     const mailOptions = {
-      from: emailOptions.from,
+      from: `${process.env.APP_NAME} <${emailOptions.from || this._emailAccountDetails.email}>`,
       to: emailOptions.to,
-      subject: emailOptions.subject,
+      subject: emailOptions.subject || `Email addressed to ${emailOptions.to}`,
       html: htmlBody
-    }; // sender address // list of receivers // Subject line // html body
+    };
 
     // send mail with defined transport object
-    try {
-      const resp = await transporter.sendMail(mailOptions);
-      console.log(resp);
-    } catch (error) {
-      console.log(error);
-    }
+    return await transporter.sendMail(mailOptions);
   }
 }

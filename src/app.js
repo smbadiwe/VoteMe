@@ -11,9 +11,17 @@ const keys = [process.env.APP_SECRET];
 app.keys = new KeyGrip(keys, "sha256");
 
 app.use(middleware());
-//app.use(auth());
 app.use(routes());
 // Finally
 app.use(ctx => (ctx.status = 404));
-
+app.on("error", (err, ctx) => {
+  console.log(`Error processing request: ${ctx.request.method} ${ctx.request.url}...`);
+  console.log(err);
+  /* centralized error handling:
+   *   console.log error
+   *   write error to log file
+   *   save error and request information to database if ctx.request match condition
+   *   ...
+  */
+});
 export default app;

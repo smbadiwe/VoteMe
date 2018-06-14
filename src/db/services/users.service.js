@@ -1,12 +1,69 @@
 import { BaseEntityService } from "./baseentity.service";
-import { UserRoleService, PermissionService } from "./";
+import { UserRoleService, PermissionService, UserPasswordService } from "./";
 import { RequestError } from "../../ValidationErrors";
 import { sign } from "jsonwebtoken";
-import { compare } from "bcrypt";
+import { compare, hashSync, genSaltSync } from "bcrypt";
+import Emailer from "../../Emailer";
 
 export default class UserService extends BaseEntityService {
   constructor() {
     super("users");
+  }
+
+  async processUserRegistration(userRegInfo) {
+    const existing = await this.getByUsername(userRegInfo.email);
+    if (existing && !existing.disabled) {
+      throw new RequestError("Sorry, we already have someone with the email address specified.");
+    }
+
+    let userId = 0;
+    if (existing) {
+      // => it's disabled, so it has not been used
+      userId = existing.id;
+      let callUpdate = false;
+      if (existing.firstname !== userRegInfo.firstname) {
+        existing.firstname = userRegInfo.firstname;
+        callUpdate = true;
+      }
+      if (existing.middlename !== userRegInfo.middlename) {
+        existing.middlename = userRegInfo.middlename;
+        callUpdate = true;
+      }
+      if (existing.lastname !== userRegInfo.lastname) {
+        existing.lastname = userRegInfo.lastname;
+        callUpdate = true;
+      }
+
+      if (callUpdate) {
+        await this.update(existing);
+      }
+    } else {
+      const savedUserId = await this.save({
+        firstname: userRegInfo.firstname,
+        middlename: userRegInfo.middlename,
+        lastname: userRegInfo.lastname,
+        email: userRegInfo.email,
+        regnumber: "" + Math.random(100, 1000) + Date.now(),
+        disabled: true
+      });
+      userId = savedUserId[0];
+    }
+    const pwd = {
+      passwordHash: hashSync(userRegInfo.password, genSaltSync()),
+      userId: userId
+    };
+    await new UserPasswordService().save(pwd);
+
+    const userInfo = { u: pwd.userId, p: pwd.passwordHash };
+    const token = sign(userInfo, process.env.APP_SECRET, { expiresIn: "20m" });
+
+    // Email the token
+    const verifyUrl = `${userRegInfo.url}?token=${token}`;
+    const viewData = { title: "Verify Email Address", url: verifyUrl };
+    const options = { to: userRegInfo.email, subject: viewData.title };
+    const sent = await new Emailer().sendEmail(options, "verifyemail.html", viewData);
+    console.log("Email sender returned: ");
+    console.log(sent);
   }
 
   async getByUsername(email) {
@@ -40,6 +97,9 @@ export default class UserService extends BaseEntityService {
     const userAuthInfo = await this.authenticatedUser(username);
     if (!userAuthInfo) {
       throw new RequestError("Username or password incorrect");
+    }
+    if (userAuthInfo.disabled) {
+      throw new RequestError("Account not yet verified or enabled");
     }
 
     const isValid = await compare(password, userAuthInfo.passwordHash);
@@ -79,6 +139,7 @@ export default class UserService extends BaseEntityService {
       return {
         token: token,
         user: {
+          i: userAuthInfo.id,
           u: userAuthInfo.email,
           f: userAuthInfo.firstname,
           l: userAuthInfo.lastname,

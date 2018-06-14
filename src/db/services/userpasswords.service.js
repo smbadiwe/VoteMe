@@ -5,10 +5,10 @@ export default class UserPasswordService extends BaseEntityService {
     super("userpasswords");
   }
 
-  async getCurrentPassword(memberId) {
+  async getCurrentPassword(userId) {
     return await this.connector
       .table(this.tableName)
-      .where({ userId: memberId })
+      .where({ userId: userId })
       .orderBy("passwordsetdate", "desc")
       .first();
   }

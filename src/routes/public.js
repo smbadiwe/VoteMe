@@ -6,8 +6,17 @@ const router = new Router();
 //NOTE: Routes here DO NOT require login
 
 // POST /login
+router.post("/register", async ctx => {
+  try {
+    const respBody = await new UserService().processUserRegistration(ctx.request.body);
+    ctx.body = respBody;
+  } catch (e) {
+    ctx.throw(e.status || 500, e);
+  }
+});
+
+// POST /login
 router.post("/login", async ctx => {
-  console.log("just called /login: ");
   try {
     const { username, password, rememberme } = ctx.request.body;
     const respBody = await new UserService().processLogin(username, password, rememberme);
