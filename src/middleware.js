@@ -5,7 +5,7 @@ import cors from "koa-cors";
 import convert from "koa-convert";
 import bodyParser from "koa-bodyparser";
 import session from "koa-generic-session";
-import { verify } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { PermissionService } from "./db/services";
 
 function corsConfig() {
@@ -50,13 +50,6 @@ function getTokenFromHeaderOrQuerystring(req) {
   return null;
 }
 
-async function trackTime(ctx, next) {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  ctx.set("X-Response-Time", `${ms}ms`);
-}
-
 async function handleError(ctx, next) {
   try {
     await next();
@@ -64,6 +57,8 @@ async function handleError(ctx, next) {
     ctx.status = err.status || 500;
     ctx.body = err.message;
     ctx.app.emit("error", err, ctx);
+  } finally {
+    ctx.set("Access-Control-Allow-Origin", "http://localhost:3001");
   }
 }
 /*
@@ -81,22 +76,32 @@ user model:
 };
  */
 async function authorizeRequest(ctx, next) {
+  let decodedToken;
   try {
     if (ctx.request.url.startsWith("/api/")) {
-      const token = getTokenFromHeaderOrQuerystring(ctx.request);
-      const decodedToken = verify(token, process.env.APP_SECRET);
+      let token = getTokenFromHeaderOrQuerystring(ctx.request);
+      decodedToken = verify(token, process.env.APP_SECRET);
       if (!decodedToken) {
         ctx.throw(401, "No jwt token");
       }
       const permissionName = `${ctx.request.method} ${ctx.request.url}`;
-      const permission = await new PermissionService().getByName(permissionName);
-      if (permission) {
-        // decodedToken.perms.
+      if (decodedToken.p.indexOf(permissionName) < 0) {
+        ctx.throw(401, "Unauthorized request");
       }
+      //   const permission = await new PermissionService().getByName(permissionName);
+      //   if (permission) {
+      //     // decodedToken.perms.
+      //   }
     }
     await next();
-  } catch (err) {
-    ctx.throw(401, err);
+  } finally {
+    if (decodedToken) {
+      ctx.set("Access-Control-Expose-Headers", "x-sign");
+      // sliding session
+      decodedToken.l = Date.now();
+      const newToken = sign(decodedToken, process.env.APP_SECRET, { expiresIn: "5m" });
+      ctx.set("x-sign", newToken);
+    }
   }
 }
 
@@ -107,7 +112,6 @@ export default function middleware() {
     convert(session()),
     logger(),
     handleError,
-    trackTime,
     convert(cors(corsConfig())),
     authorizeRequest
   ]);

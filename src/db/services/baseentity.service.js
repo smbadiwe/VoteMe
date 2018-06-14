@@ -19,7 +19,8 @@ export class BaseEntityService {
   }
 
   /**
-   *
+   * Retrieve the first record that meet the specified equality condition(s).
+   * If 'conditions' is falsy, we retrieve the first record in the DB.
    * @param {*} conditions A JSON object specifying equality conditions the knex way
    */
   async getFirst(conditions = null) {

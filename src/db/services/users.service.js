@@ -1,7 +1,7 @@
 import { BaseEntityService } from "./baseentity.service";
 import { UserRoleService, PermissionService, UserPasswordService } from "./";
-import { RequestError } from "../../ValidationErrors";
-import { sign } from "jsonwebtoken";
+import { RequestError, Required } from "../../ValidationErrors";
+import { sign, verify } from "jsonwebtoken";
 import { compare, hashSync, genSaltSync } from "bcrypt";
 import Emailer from "../../Emailer";
 
@@ -64,6 +64,21 @@ export default class UserService extends BaseEntityService {
     const sent = await new Emailer().sendEmail(options, "verifyemail.html", viewData);
     console.log("Email sender returned: ");
     console.log(sent);
+  }
+
+  async verifyUser(registrationToken) {
+    if (!registrationToken) throw new Required("registrationToken");
+    const userInfo = verify(registrationToken, process.env.APP_SECRET);
+    if (!userInfo) {
+      throw new RequestError("Invalid registration token", 401);
+    }
+    //{ u: pwd.userId, p: pwd.passwordHash }
+    const user = await this.getById(userInfo.u);
+    if (!user || !user.disabled) {
+      throw new RequestError("Fake registration token", 401);
+    }
+    user.disabled = false;
+    await this.update(user);
   }
 
   async getByUsername(email) {
@@ -133,8 +148,8 @@ export default class UserService extends BaseEntityService {
       // jwt sign
       //TODO: Figure out a way to expire tokens. For some ideas, visit
       // https://stackoverflow.com/questions/26739167/jwt-json-web-token-automatic-prolongation-of-expiration
-      const userInfo = { u: userAuthInfo.email, p: userPermissions };
-      const token = sign(userInfo, process.env.APP_SECRET);
+      const userInfo = { u: userAuthInfo.email, l: Date.now(), p: userPermissions };
+      const token = sign(userInfo, process.env.APP_SECRET, { expiresIn: "5m" });
 
       return {
         token: token,

@@ -5,7 +5,6 @@ const router = new Router();
 
 //NOTE: Routes here DO NOT require login
 
-// POST /login
 router.post("/register", async ctx => {
   try {
     const respBody = await new UserService().processUserRegistration(ctx.request.body);
@@ -15,6 +14,14 @@ router.post("/register", async ctx => {
   }
 });
 
+router.get("/verifyuser", async ctx => {
+  try {
+    const respBody = await new UserService().verifyUser(ctx.request.query.token);
+    ctx.body = respBody;
+  } catch (e) {
+    ctx.throw(e.status || 500, e);
+  }
+});
 // POST /login
 router.post("/login", async ctx => {
   try {
